@@ -37,10 +37,13 @@ def _git_sha(repo: Path) -> str | None:
 
 
 def _fit(x: np.ndarray, y: np.ndarray, max_iter: int) -> HistGradientBoostingClassifier:
+    # balanced weights, because the CSPRNG class is deliberately over-sampled 3x
+    # for a tighter control interval and would otherwise own the prior.
     model = HistGradientBoostingClassifier(
         max_iter=max_iter,
         learning_rate=0.1,
         early_stopping=False,
+        class_weight="balanced",
         random_state=RANDOM_STATE,
     )
     model.fit(x, y)
@@ -118,21 +121,30 @@ def _csprng_control(fs: FeatureSet) -> dict:
     }
 
 
+def _subset(fs: FeatureSet, mask: np.ndarray) -> FeatureSet:
+    return FeatureSet(
+        n_draws=fs.n_draws,
+        x=fs.x[mask],
+        generator=fs.generator[mask],
+        shuffle=fs.shuffle[mask],
+        is_csprng=fs.is_csprng[mask],
+        split=fs.split[mask],
+        seed=fs.seed[mask],
+    )
+
+
+def _weak_generator_head(fs: FeatureSet) -> dict:
+    """Generator identification with the CSPRNG removed: are the six weak
+    generators even mutually separable, or only separable from ChaCha20?"""
+    sub = _subset(fs, ~fs.is_csprng)
+    return _select_and_score(sub, sub.generator, "generator_weak_only")
+
+
 def _csprng_shuffle_head(fs: FeatureSet) -> dict:
     """Shuffle identification restricted to CSPRNG samples: isolates shuffle-shape
     signal from generator-quality signal."""
-    csprng = fs.is_csprng
-    sub = FeatureSet(
-        n_draws=fs.n_draws,
-        x=fs.x[csprng],
-        generator=fs.generator[csprng],
-        shuffle=fs.shuffle[csprng],
-        is_csprng=fs.is_csprng[csprng],
-        split=fs.split[csprng],
-        seed=fs.seed[csprng],
-    )
-    out = _select_and_score(sub, sub.shuffle, "shuffle_csprng_only")
-    return out
+    sub = _subset(fs, fs.is_csprng)
+    return _select_and_score(sub, sub.shuffle, "shuffle_csprng_only")
 
 
 def run(dataset: Path, run_id: str, out_dir: Path, workers: int, repo: Path) -> dict:
@@ -150,6 +162,7 @@ def run(dataset: Path, run_id: str, out_dir: Path, workers: int, repo: Path) -> 
                 fs, np.where(fs.is_csprng, "csprng", "weak"), "is_csprng"
             ),
             "csprng_control": _csprng_control(fs),
+            "generator_weak_only": _weak_generator_head(fs),
         }
         if n == N_CURVE[-1]:
             block["shuffle_csprng_only"] = _csprng_shuffle_head(fs)
@@ -165,6 +178,7 @@ def run(dataset: Path, run_id: str, out_dir: Path, workers: int, repo: Path) -> 
             "model": "HistGradientBoostingClassifier",
             "max_iter_grid": list(MAX_ITER_GRID),
             "learning_rate": 0.1,
+            "class_weight": "balanced",
             "n_features": int(sets[N_CURVE[0]].x.shape[1]),
             "n_samples": int(sets[N_CURVE[0]].x.shape[0]),
             "split_sizes": {
@@ -197,6 +211,9 @@ def main() -> None:
             "generator": round(block["generator"]["test_balanced_accuracy"], 4),
             "shuffle": round(block["shuffle"]["test_balanced_accuracy"], 4),
             "is_csprng": round(block["is_csprng"]["test_balanced_accuracy"], 4),
+            "generator_weak_only": round(
+                block["generator_weak_only"]["test_balanced_accuracy"], 4
+            ),
             "control": [round(v, 4) for v in block["csprng_control"]["ci95"]],
         }
         for n, block in payload["metrics"].items()
