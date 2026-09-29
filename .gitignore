@@ -1,0 +1,10 @@
+# Python / node junk
+__pycache__/
+.venv/
+node_modules/
+artifacts/
+data/
+.ruff_cache/
+.pytest_cache/
+dist/
+*.egg-info/
