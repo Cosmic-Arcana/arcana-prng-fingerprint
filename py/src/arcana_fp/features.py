@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from arcana_fp import bitstats
+from arcana_fp import bitstats, gf2
 
 DECK = 78
 POSITION_BUCKETS = 6
 _FIRST_POSITIONS = 6
+CARD_ID_BITS = 7
+REV_BLOCK_SPAN = 4
+RANK_BLOCK = 1024
 
 
 def _perm_matrix(sample: dict, n_draws: int) -> tuple[np.ndarray, np.ndarray]:
@@ -88,7 +91,7 @@ def _mean_std(values: np.ndarray) -> tuple[float, float]:
     return float(values.mean()), float(values.std())
 
 
-def feature_names() -> list[str]:
+def r1_feature_names() -> list[str]:
     names: list[str] = []
     for stat in (
         "inversions",
@@ -128,7 +131,129 @@ def feature_names() -> list[str]:
     return names
 
 
-N_FEATURES = len(feature_names())
+def gf2_feature_names() -> list[str]:
+    names = [
+        "rev_lc78_mean",
+        "rev_lc78_std",
+        "rev_lc78_min",
+        "rev_lc78_max",
+        "rev_lc78_dev",
+        "rev_lc78_frac_le32",
+        "rev_lc78_t_mean",
+        "rev_lc78_t_chi2",
+        "rev_lc312_mean",
+        "rev_lc312_dev",
+        "mix_lc624_mean",
+        "mix_lc624_std",
+        "mix_lc624_dev",
+        "mix_lc624_t_chi2",
+        "rev_lcprofile_jumps",
+        "rev_lcprofile_jump_height",
+    ]
+    for stream in ("rev", "card", "mix"):
+        names += [
+            f"rank_{stream}_mean",
+            f"rank_{stream}_full",
+            f"rank_{stream}_minus1",
+            f"rank_{stream}_lower",
+            f"rank_{stream}_chi2",
+        ]
+    return names
+
+
+def feature_names() -> list[str]:
+    return r1_feature_names() + gf2_feature_names()
+
+
+N_R1_FEATURES = len(r1_feature_names())
+N_GF2_FEATURES = len(gf2_feature_names())
+N_FEATURES = N_R1_FEATURES + N_GF2_FEATURES
+
+FEATURE_SETS = {
+    "r1": slice(0, N_R1_FEATURES),
+    "gf2": slice(N_R1_FEATURES, N_FEATURES),
+    "all": slice(0, N_FEATURES),
+}
+
+
+def bit_streams(order: np.ndarray, rev: np.ndarray) -> dict[str, np.ndarray]:
+    """The three serialisations the GF(2) tests run on.
+
+    `rev` is the orientation bits verbatim; in `independent-bit` mode one draw's
+    78 bits are the low bit of 78 *consecutive* generator words, which makes a
+    draw the longest contiguous run of raw generator output a sample exposes.
+    `card` is each card id as 7 bits, most significant first. `mix` interleaves
+    them: per card, its 7 id bits then its orientation bit.
+    """
+    shifts = np.arange(CARD_ID_BITS - 1, -1, -1, dtype=np.int32)
+    card_bits = ((order[:, :, None].astype(np.int32) >> shifts[None, None, :]) & 1).astype(
+        np.uint8
+    )
+    mix = np.concatenate([card_bits, rev[:, :, None].astype(np.uint8)], axis=2)
+    return {
+        "rev": rev.reshape(-1).astype(np.uint8),
+        "card": card_bits.reshape(-1),
+        "mix": mix.reshape(-1),
+    }
+
+
+def _gf2_values(order: np.ndarray, rev: np.ndarray) -> list[float]:
+    deck = order.shape[1]
+    streams = bit_streams(order, rev)
+
+    profiles = [gf2.berlekamp_massey_profile(row.tolist()) for row in rev]
+    lengths = np.array([p[0] for p in profiles], dtype=np.float64)
+    jumps = np.array([p[1] for p in profiles], dtype=np.float64)
+    heights = np.array([p[2] for p in profiles], dtype=np.float64)
+
+    values: list[float] = []
+    if lengths.size:
+        mu = gf2.expected_complexity(deck)
+        t_values = np.array(
+            [gf2.complexity_statistic(int(v), deck) for v in lengths], dtype=np.float64
+        )
+        values += [
+            float(lengths.mean()),
+            float(lengths.std()),
+            float(lengths.min()),
+            float(lengths.max()),
+            float(lengths.mean() - mu),
+            float((lengths <= 32).mean()),
+            float(t_values.mean()),
+            gf2.complexity_buckets(lengths, deck),
+        ]
+    else:
+        values += [0.0] * 8
+
+    span = deck * REV_BLOCK_SPAN
+    spanning = gf2.complexities(streams["rev"], span)
+    if spanning.size:
+        values += [
+            float(spanning.mean()),
+            float(spanning.mean() - gf2.expected_complexity(span)),
+        ]
+    else:
+        values += [0.0, 0.0]
+
+    mix_block = deck * (CARD_ID_BITS + 1)
+    mix_lengths = gf2.complexities(streams["mix"], mix_block)
+    if mix_lengths.size:
+        values += [
+            float(mix_lengths.mean()),
+            float(mix_lengths.std()),
+            float(mix_lengths.mean() - gf2.expected_complexity(mix_block)),
+            gf2.complexity_buckets(mix_lengths, mix_block),
+        ]
+    else:
+        values += [0.0] * 4
+
+    values += [float(jumps.mean()) if jumps.size else 0.0]
+    values += [float(heights.mean()) if heights.size else 0.0]
+
+    for name in ("rev", "card", "mix"):
+        values += list(gf2.rank_stats(streams[name]))
+
+    return values
 
 
 def extract(sample: dict, n_draws: int) -> np.ndarray:
@@ -204,6 +329,8 @@ def extract(sample: dict, n_draws: int) -> np.ndarray:
     for i in range(_FIRST_POSITIONS):
         mean, std = _mean_std(order[:, i].astype(np.float64))
         values += [mean, std]
+
+    values += _gf2_values(order, rev)
 
     return np.nan_to_num(np.asarray(values, dtype=np.float64), posinf=0.0, neginf=0.0)
 
