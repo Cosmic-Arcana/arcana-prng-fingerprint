@@ -12,23 +12,34 @@ Data lives in the sibling checkout `arcana-rng-lab` (`samples` CLI,
 | R1a | `r1-baseline` — unweighted boosting | balanced acc, held-out seeds | prior-dominated, superseded | superseded |
 | R1b | `r1-balanced` — headline statistical baseline | balanced acc, held-out seeds | gen 0.384 / shuffle 0.761 | done |
 | R1c | CSPRNG seed-parity control | Wilson 95% CI contains 0.500 | 0.508 [0.465, 0.550] | done — at chance |
-| R2 | GF(2) linear structure: matrix rank + Berlekamp-Massey | 6-class weak-generator balanced acc | target > 0.70 at N=128 | next |
+| R2a | `r2-all` — GF(2) block on top of round 1 | 6-class weak-generator balanced acc | 0.595 (target was > 0.70) | done — H5 rejected, large lift |
+| R2b | `r2-gf2` / `r2-r1` — ablation arms | same, one block at a time | gf2 alone 0.606, r1 alone 0.442 | done |
+| R2c | CSPRNG seed-parity control, all three arms | Wilson 95% CI contains 0.500 | 0.474 [0.431, 0.516] | done — at chance |
+| R4 | GF(2) state recovery for MT19937 at N>=256 draws | consistent state exists / does not | target recall 1.000 | next |
+| R5 | shuffle inversion to recover generator words | reach pcg32 / xorshift128+ | — | queued |
 | R3 | `derived` orientation ablation | delta vs `independent-bit` | — | queued |
 
 ## Baseline to beat (held-out test seeds, N=128)
 
+Round 2 supersedes round 1 on every generator head. Round 1 numbers in brackets.
+
 | Head | Chance | Baseline |
 | --- | --- | --- |
-| generator, 7-class | 0.143 | **0.384** |
-| generator, CSPRNG removed, 6-class | 0.167 | **0.442** |
-| shuffle, 11-class | 0.091 | **0.761** |
+| generator, 7-class | 0.143 | **0.532** (r1: 0.384) |
+| generator, CSPRNG removed, 6-class | 0.167 | **0.595** (r1: 0.442) |
+| shuffle, 11-class | 0.091 | **0.765** (r1: 0.761) |
 | shuffle, ChaCha20 samples only | 0.091 | **0.831** |
-| is_csprng, binary | 0.500 | **0.572** |
-| CSPRNG control | 0.500 | **must stay in [0.465, 0.550]** |
+| is_csprng, binary | 0.500 | **0.611** (r1: 0.572) |
+| CSPRNG control | 0.500 | **must stay in [0.431, 0.516]** |
+
+Solved generators, recall and precision both 1.000 at N=128: `lcg-glibc`,
+`xorshift32`. Losing either is a regression. `mt19937`, `pcg32` and
+`xorshift128+` are still at chance and are what R4 and R5 are for.
 
 ## Standing rules for this track
 
-- Hypothesis and metric go in `lab/reports/round-<n>.md` before the run starts.
+- Hypothesis and metric go in `lab/reports/round-<n>.md` before the run starts,
+  and are never edited afterwards to match the result.
 - Seed ranges are disjoint per split: train 1_000_000+, val 2_000_000+,
   test 3_000_000+. Test seeds are scored once, never tuned on.
 - Above chance on the CSPRNG control is a bug until proven otherwise.
