@@ -71,3 +71,60 @@ def test_labels_never_enter_the_feature_vector() -> None:
     sample["sample_id"] = "leaky"
     sample["created_at"] = "2030-01-01T00:00:00Z"
     assert np.array_equal(baseline, extract(sample, 16))
+
+
+def test_feature_sets_partition_the_vector() -> None:
+    from arcana_fp.features import (
+        FEATURE_SETS,
+        N_FEATURES,
+        N_GF2_FEATURES,
+        N_R1_FEATURES,
+        gf2_feature_names,
+        r1_feature_names,
+    )
+
+    assert N_R1_FEATURES + N_GF2_FEATURES == N_FEATURES
+    assert feature_names() == r1_feature_names() + gf2_feature_names()
+    vector = extract(_sample(5), 16)
+    assert vector[FEATURE_SETS["r1"]].size == N_R1_FEATURES
+    assert vector[FEATURE_SETS["gf2"]].size == N_GF2_FEATURES
+    assert vector[FEATURE_SETS["all"]].size == N_FEATURES
+
+
+def test_bit_streams_have_the_documented_widths() -> None:
+    from arcana_fp.features import bit_streams
+
+    sample = _sample(6, n_draws=4)
+    order = np.array([d["order"] for d in sample["draws"]], dtype=np.int16)
+    rev = np.array(
+        [[int(c) for c in d["rev"]] for d in sample["draws"]], dtype=np.uint8
+    )
+    streams = bit_streams(order, rev)
+    assert streams["rev"].size == 4 * 78
+    assert streams["card"].size == 4 * 78 * 7
+    assert streams["mix"].size == 4 * 78 * 8
+    assert set(np.unique(streams["mix"]).tolist()) <= {0, 1}
+    # the mix stream must carry the id bits and the orientation bit, in that order
+    first = streams["mix"][:8]
+    assert int("".join(str(b) for b in first[:7]), 2) == int(order[0, 0])
+    assert int(first[7]) == int(rev[0, 0])
+
+
+def test_linear_generator_lowers_complexity_but_a_random_stream_does_not() -> None:
+    from arcana_fp.features import feature_names, extract
+
+    names = feature_names()
+    index = names.index("rev_lc78_mean")
+    random_sample = _sample(9, n_draws=16)
+    linear = _sample(9, n_draws=16)
+    for draw in linear["draws"]:
+        bits = []
+        state = 0x12345678
+        for _ in range(78):
+            state ^= (state << 13) & 0xFFFFFFFF
+            state ^= state >> 17
+            state ^= (state << 5) & 0xFFFFFFFF
+            bits.append(state & 1)
+        draw["rev"] = "".join(str(b) for b in bits)
+    assert extract(linear, 16)[index] <= 32.0
+    assert extract(random_sample, 16)[index] > 34.0
