@@ -104,10 +104,20 @@ def _twist(state: np.ndarray) -> None:
         state[rows] = state[(rows + MT_M) % MT_N] ^ xa
 
 
-def observation_matrix(budget: int, n_draws: int) -> np.ndarray:
-    """Row i: the initial-state bits whose XOR is observed orientation bit i."""
-    positions = observation_positions(budget, n_draws)
-    taps = list(low_bit_taps())
+def observation_matrix(
+    budget: int,
+    n_draws: int,
+    positions: np.ndarray | None = None,
+    taps: tuple[int, ...] | None = None,
+) -> np.ndarray:
+    """Row i: the initial-state bits whose XOR is observed orientation bit i.
+
+    Defaults give the independent-bit model (bit 0 of consecutive words). A caller
+    may pass its own stream positions and tempering taps for another orientation.
+    """
+    if positions is None:
+        positions = observation_positions(budget, n_draws)
+    taps = list(low_bit_taps() if taps is None else taps)
     state = _symbolic_state()
     out = np.empty((positions.size, STATE_WORDS), dtype=np.uint64)
     generation = positions // MT_N
