@@ -16,6 +16,8 @@ Generator and shuffle variants are catalogued in the sibling checkout,
 | `r2-all` / attribution | The lift comes from GF(2)-linear generators specifically | Confirmed, sharply. `xorshift32` 0.278 -> 1.000 is 79% of the lift. `mt19937`, `pcg32`, `xorshift128+` moved 0.03-0.09, which is what losing a competitor does on its own. |
 | `r2-*` / csprng control | ChaCha20 still carries no generator-level signal under the new features | Confirmed in all three arms at all three N. Widest 0.521 [0.478, 0.563]. |
 | `r4-mt-consistency` | An MT19937 state consistent with the orientation bits exists iff the sample is MT19937, decidable from N=256 | **Confirmed.** Checks appear at exactly `78N - 19937` (0 at 255, 31 at 256, 343 at 260); test recall 1.000, 0 of 384 non-MT flagged, every match under the true word budget only. 24 s, nothing fitted. |
+| `r3-derived-state` | The r4 detector transfers to derived orientation; threshold is ceil(19937/77)=259, not 256 | **Confirmed.** Checks at exactly 77N-19937 (0 at 258, 6 at 259, 4703 at 320); test recall 1.000, 0/384 non-MT flagged. Derived costs three extra draws, it does not hide mt19937. |
+| `r3-derived-grid` | Derived orientation changes the statistical fingerprint | Weak-generator balanced acc 0.595->0.533 (-0.062, H13 rejected): derived is slightly *worse* for a statistical attacker. Shuffle unchanged (+0.027), control at chance. |
 
 ## Known ceilings
 
