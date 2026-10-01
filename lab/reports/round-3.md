@@ -101,3 +101,67 @@ xorshift128+ and builds no predictor of future output.
 ---
 
 # Results
+
+Runs: `lab/runs/r3-derived-state.json` (algebraic), `lab/runs/r3-derived-grid.json`
+(statistical). Datasets generated from `arcana-rng-lab` configs
+`r3-derived-state` (560 samples x 320 draws, Fisher-Yates only) and
+`r3-derived-grid` (7920 samples, the round-2 grid with `orientation: derived`).
+Detector 0.6 s symbolic + 9.9 s elimination; statistical pipeline 2 min 27 s.
+Both inside the cap. Git SHA in each run file.
+
+## H12 — algebraic detector, CONFIRMED, threshold at 259
+
+| N draws | 128 | 258 | 259 | 260 | 320 |
+| --- | --- | --- | --- | --- | --- |
+| predicted checks (`77N - 19937`) | 0 | 0 | 6 | 83 | 4703 |
+| measured checks | 0 | 0 | 6 | 83 | 4703 |
+| mt19937 recall, test | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 |
+| non-MT flagged, test | 0 | 0 | 0 | 0 | 0 |
+
+Rank 19937, first checks at N = 259 = `ceil(19937 / 77)`, exactly as predicted.
+mt19937 recall 1.000, 0 of 384 non-MT test samples flagged, ChaCha20 never
+flagged. **H12 confirmed, and H14 holds on the algebraic side.**
+
+The threshold moved by exactly the predicted amount: independent-bit exposes 78
+independent bits per draw and crosses at 256; derived exposes 77 (card 77
+duplicates card 0) and crosses at 259. A three-draw shift, and it lands where the
+word-reuse model says it must. Derived orientation does **not** hide MT19937 from
+an exact detector; it costs three extra draws.
+
+## H13 — statistical heads, narrowly REJECTED
+
+Balanced accuracy, held-out test seeds, feature set `all`, N = 128, derived vs
+the independent-bit round-2 numbers:
+
+| Head | derived | independent-bit (r2) | delta |
+| --- | --- | --- | --- |
+| generator, 6-class weak-only | 0.533 | 0.595 | **-0.062** |
+| generator, 7-class | 0.463 | 0.532 | -0.069 |
+| shuffle, 11-class | 0.792 | 0.765 | +0.027 |
+| is_csprng | 0.662 | 0.611 | +0.051 |
+| ChaCha20 control | 0.530 [0.488, 0.573] | 0.474 [0.431, 0.516] | contains 0.5 |
+
+The weak-generator head drops 0.062, just past the 0.05 band, so **H13 is
+rejected** — derived orientation measurably *weakens* the statistical generator
+fingerprint, by a small amount. H14 holds: the control contains 0.5.
+
+Mechanism, from the per-class recalls: `xorshift32` stays at 1.000 and
+`lcg-glibc` at 0.93 — the generators the GF(2) block solves are unaffected.
+`mt19937` sits at 0.398, `pcg32` 0.307, `xorshift128+` 0.250, all essentially
+unchanged. The loss is diffuse, consistent with the statistical channel being
+slightly worse when the exposed bit is tempered bit 31 of a reused word rather
+than bit 0 of a fresh one: bit 31 passes through more of the tempering mix, so
+the per-block linear-complexity and rank features see a marginally noisier
+stream. Shuffle identification is unchanged (+0.027), as expected — the shuffle
+signal lives in the permutation, not the orientation.
+
+## What this round establishes
+
+- An implementation that reuses shuffle words for orientation does not escape the
+  R4 detector; it only shifts the draw threshold by the ratio of exposed bits
+  (256 -> 259).
+- For a statistical classifier, derived orientation is slightly *worse* for the
+  attacker than independent-bit, not better — the opposite of what a "one value
+  decides both" bug might be assumed to leak.
+- Detection and measurement were sufficient to characterise the orientation
+  change end to end, with no state recovery.
