@@ -15,8 +15,8 @@ Data lives in the sibling checkout `arcana-rng-lab` (`samples` CLI,
 | R2a | `r2-all` — GF(2) block on top of round 1 | 6-class weak-generator balanced acc | 0.595 (target was > 0.70) | done — H5 rejected, large lift |
 | R2b | `r2-gf2` / `r2-r1` — ablation arms | same, one block at a time | gf2 alone 0.606, r1 alone 0.442 | done |
 | R2c | CSPRNG seed-parity control, all three arms | Wilson 95% CI contains 0.500 | 0.474 [0.431, 0.516] | done — at chance |
-| R4 | GF(2) state recovery for MT19937 at N>=256 draws | consistent state exists / does not | target recall 1.000 | next |
-| R5 | shuffle inversion to recover generator words | reach pcg32 / xorshift128+ | — | queued |
+| R4 | `r4-mt-consistency` — MT19937 state consistency over GF(2) | test recall / non-MT flagged | 1.000 / 0 of 384 at N>=256; 0.000 below | done — H8-H11 confirmed, threshold exactly 256 |
+| R5 | shuffle inversion to recover generator words | reach pcg32 / xorshift128+ | — | next |
 | R3 | `derived` orientation ablation | delta vs `independent-bit` | — | queued |
 
 ## Baseline to beat (held-out test seeds, N=128)
@@ -33,8 +33,10 @@ Round 2 supersedes round 1 on every generator head. Round 1 numbers in brackets.
 | CSPRNG control | 0.500 | **must stay in [0.431, 0.516]** |
 
 Solved generators, recall and precision both 1.000 at N=128: `lcg-glibc`,
-`xorshift32`. Losing either is a regression. `mt19937`, `pcg32` and
-`xorshift128+` are still at chance and are what R4 and R5 are for.
+`xorshift32`. Losing either is a regression. `mt19937` is solved separately by
+the R4 algebraic detector at N>=256 with a fixed-budget shuffle (recall 1.000,
+0 false flags); below 256 draws it is provably undetectable from orientation
+bits. `pcg32` and `xorshift128+` are still at chance and are what R5 is for.
 
 ## Standing rules for this track
 
