@@ -17,7 +17,7 @@ Data lives in the sibling checkout `arcana-rng-lab` (`samples` CLI,
 | R2c | CSPRNG seed-parity control, all three arms | Wilson 95% CI contains 0.500 | 0.474 [0.431, 0.516] | done — at chance |
 | R4 | `r4-mt-consistency` — MT19937 state consistency over GF(2) | test recall / non-MT flagged | 1.000 / 0 of 384 at N>=256; 0.000 below | done — H8-H11 confirmed, threshold exactly 256 |
 | R5 | shuffle inversion to recover generator words | reach pcg32 / xorshift128+ | — | next |
-| R3 | `derived` orientation ablation | delta vs `independent-bit` | — | queued |
+| R3 | `derived` orientation: detector threshold + statistical delta | threshold draws; delta vs indep | done — H12 confirmed (threshold 256->259), H13 rejected (weak-gen -0.062) |
 
 ## Baseline to beat (held-out test seeds, N=128)
 
