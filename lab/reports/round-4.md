@@ -99,3 +99,56 @@ per N in {128, 255, 256, 257, 260}, and per-generator flag rates.
 ---
 
 # Results
+
+Run: `lab/runs/r4-mt-consistency.json`. Dataset `data/r4-state-recovery.jsonl`,
+2240 samples (1344 train / 448 val / 448 test), first 260 of 512 draws read.
+Symbolic model 1.4 s and elimination ~18 s per budget, both budgets in
+parallel; whole run **24 s** wall clock, inside the 15-minute cap. Git SHA in
+the run file. Nothing fitted, nothing selected.
+
+## Headline (held-out test seeds, N = 260)
+
+| | Result | Target |
+| --- | --- | --- |
+| `mt19937` recall | **1.000** (64 / 64) | 1.000 |
+| non-MT samples flagged | **0** / 384 | 0 |
+| ChaCha20 flagged | **0** / 192 | 0 |
+
+**H8 confirmed.** H10 holds: the canary was never flagged at any N.
+
+## The threshold is exactly where the state size puts it (H9)
+
+Checks available per budget, measured against `max(0, 78 N - 19937)`:
+
+| N draws | 128 | 255 | 256 | 257 | 260 |
+| --- | --- | --- | --- | --- | --- |
+| predicted | 0 | 0 | 31 | 109 | 343 |
+| measured, budget 77 | 0 | 0 | 31 | 109 | 343 |
+| measured, budget 78 | 0 | 0 | 31 | 109 | 343 |
+| `mt19937` recall, test | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 |
+| non-MT flagged, test | 0 | 0 | 0 | 0 | 0 |
+
+Rank is 19937 under both budgets — the observations reach every effective state
+bit and leak nothing beyond one bit per orientation word. **H9 confirmed**: the
+ceiling round 2 hit is a step function at 256 draws. Train and val give the
+same numbers (192/192 and 64/64 recall, 0 false flags), as they must for a
+detector with no parameters.
+
+## Budget agreement (H11)
+
+All 64 test `mt19937` samples matched under their true shuffle's budget and
+under that budget only. **H11 confirmed**; the observation model is right about
+where every bit sits in the stream.
+
+## What this changes
+
+- `mt19937` moves from "at chance" to **solved at N >= 256**, deterministically,
+  with a false-flag bound of 2^-31 per budget at 256 and 2^-343 at 260.
+- The 512-draw config over-provisioned by 2x. 256 is the floor; 260 buys
+  hundreds of checks.
+- Below 256 draws no algorithm can do this from orientation bits alone: the
+  system is underdetermined, so every bit string is consistent with some state.
+- The detector needs a fixed word budget. Variable-budget shuffles (GSR
+  riffles) and `derived` orientation are outside it.
+- `pcg32` and `xorshift128+` remain at chance; they are not GF(2)-linear in the
+  exposed bit, which is R5's problem.
