@@ -1,0 +1,184 @@
+{
+  "id": "r3-derived-state",
+  "gitSha": "4f7e13c9a46c729aa1e8aafad09c7676995b8d6f",
+  "config": {
+    "dataset": "data/r3-derived-state.jsonl",
+    "orientation": "derived",
+    "shuffle": "fisher-yates",
+    "n_samples": 560,
+    "observed_draws": 320,
+    "n_curve": [
+      128,
+      258,
+      259,
+      260,
+      320
+    ],
+    "independent_bits_per_draw": 77,
+    "effective_state_bits": 19937,
+    "bit31_taps": [
+      16,
+      24,
+      27,
+      31
+    ],
+    "decision": "flag mt19937 iff every available derived check holds"
+  },
+  "elimination": {
+    "orientation": "derived",
+    "shuffle": "fisher-yates",
+    "observations": 24640,
+    "independent_per_draw": 77,
+    "rank": 19937,
+    "checks": 4703,
+    "symbolic_seconds": 0.6,
+    "elimination_seconds": 9.9,
+    "checks_at_n": {
+      "128": 0,
+      "258": 0,
+      "259": 6,
+      "260": 83,
+      "320": 4703
+    },
+    "predicted_checks_at_n": {
+      "128": 0,
+      "258": 0,
+      "259": 6,
+      "260": 83,
+      "320": 4703
+    }
+  },
+  "scores": {
+    "train": {
+      "128": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 48,
+        "non_mt_samples": 288,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "258": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 48,
+        "non_mt_samples": 288,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "259": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 48,
+        "non_mt_samples": 288,
+        "non_mt_flagged": 7,
+        "false_flags_by_generator": {
+          "xorshift32": 1,
+          "xorshift128+": 1,
+          "chacha20": 5
+        }
+      },
+      "260": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 48,
+        "non_mt_samples": 288,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "320": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 48,
+        "non_mt_samples": 288,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      }
+    },
+    "val": {
+      "128": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "258": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "259": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 2,
+        "false_flags_by_generator": {
+          "xorshift32": 1,
+          "chacha20": 1
+        }
+      },
+      "260": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "320": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      }
+    },
+    "test": {
+      "128": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "258": {
+        "mt19937_recall": 0.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "259": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 2,
+        "false_flags_by_generator": {
+          "xorshift128+": 1,
+          "pcg32": 1
+        }
+      },
+      "260": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      },
+      "320": {
+        "mt19937_recall": 1.0,
+        "mt19937_samples": 16,
+        "non_mt_samples": 96,
+        "non_mt_flagged": 0,
+        "false_flags_by_generator": {}
+      }
+    }
+  },
+  "headline": {
+    "n": 320,
+    "test_mt19937_recall": 1.0,
+    "test_non_mt_flagged": 0,
+    "test_chacha20_flagged": 0,
+    "first_check_at_n": 259,
+    "predicted_threshold_draws": 259,
+    "h12_confirmed": true
+  },
+  "wallSeconds": 12.6
+}
