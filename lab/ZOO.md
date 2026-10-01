@@ -15,6 +15,7 @@ Generator and shuffle variants are catalogued in the sibling checkout,
 | `r2-all` | Both blocks, 85 features. Headline: GF(2) structure lifts the 6-class head above 0.70 | **Rejected** at 0.595, but a +0.153 lift over round 1 and the largest move of the project so far. Validation chose this arm over `gf2` alone; on test the two are inside each other's noise. |
 | `r2-all` / attribution | The lift comes from GF(2)-linear generators specifically | Confirmed, sharply. `xorshift32` 0.278 -> 1.000 is 79% of the lift. `mt19937`, `pcg32`, `xorshift128+` moved 0.03-0.09, which is what losing a competitor does on its own. |
 | `r2-*` / csprng control | ChaCha20 still carries no generator-level signal under the new features | Confirmed in all three arms at all three N. Widest 0.521 [0.478, 0.563]. |
+| `r4-mt-consistency` | An MT19937 state consistent with the orientation bits exists iff the sample is MT19937, decidable from N=256 | **Confirmed.** Checks appear at exactly `78N - 19937` (0 at 255, 31 at 256, 343 at 260); test recall 1.000, 0 of 384 non-MT flagged, every match under the true word budget only. 24 s, nothing fitted. |
 
 ## Known ceilings
 
@@ -27,7 +28,8 @@ sample exposes at most **78 contiguous** generator bits (one draw; the shuffle
 consumes an unobserved block between draws). Berlekamp-Massey needs ~2L
 consecutive terms for degree L, so no statistic over per-draw blocks can reach
 it. This is a ceiling of the 128-draw dataset, not of the method: it lifts by
-collecting more observations (R4), not by choosing a better test.
+collecting more observations, not by choosing a better test. R4 confirmed it
+lifts at exactly 256 draws and not one earlier.
 
 `pcg32` and `xorshift128+` are not GF(2)-linear in the exposed bit at all —
 PCG32's output rotation is state-dependent, and xorshift128+'s final addition
