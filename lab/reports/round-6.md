@@ -75,23 +75,25 @@ Chance is 0.500 for binary heads, 0.333 for the 3-class head.
 
 ## Reading
 
-- The `pcg32` / `xorshift128+` ceiling is **structural, not a draw-count limit**.
-  MT19937 flipped from invisible to exact at 256 draws because more draws added
-  linear equations the detector could use. These two generators have no such
-  equations in the exposed bits, and quadrupling the draws moved nothing.
-- The 3-class head at N = 512 (0.349, interval [0.312, 0.389]) includes chance.
-  Its lower end is the only place the number rises, and it does so inside noise.
+- For these detectors the `pcg32` / `xorshift128+` ceiling is **not a draw-count
+  limit**. MT19937 flipped from invisible to exact at 256 draws because more draws
+  added linear equations the detector could use. The zoo's analysis says these two
+  generators expose no such equations in the orientation bit, and quadrupling the
+  draws moved nothing, which fits that analysis but does not prove it.
+- The 3-class head drifts from 0.316 to 0.349 across N, and its N = 512 interval
+  [0.312, 0.389] still contains chance (0.333). Read as noise, not a trend.
 - Power: with 64 test samples per weak generator and 192 for ChaCha20, intervals
   are about +-0.03 to +-0.05 wide on the binary heads. A signal larger than about
   0.06 over chance would have shown. A smaller one is not excluded. This is a
   statement about these features and this sample size, not about the generators.
-- The control interval at N = 512 sits low in its range (0.438) but contains 0.500;
-  it is the largest of three draws and is noted, not acted on.
+- The control at N = 512 reads 0.438 with an upper bound of 0.508, so it passes
+  H16 narrowly. It is below chance, and a leak would show above chance, so it
+  does not threaten the round. A rerun with more control samples would settle it.
 
 ## Consequence
 
-The statistical-detector route is exhausted for these two generators on this
-feature set. Further progress needs either more samples per weak class to tighten
+The existing statistical detectors show no draw-count lift for these two
+generators. Further progress needs either more samples per weak class to tighten
 the intervals, or features of a different kind. Features of the kind that read
 generator words are the state-reconstruction family and stay out of scope
 (`lab/CAPABILITIES.md`). Nothing in R6 changes that boundary.
