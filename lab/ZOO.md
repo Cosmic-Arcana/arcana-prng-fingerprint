@@ -18,6 +18,7 @@ Generator and shuffle variants are catalogued in the sibling checkout,
 | `r4-mt-consistency` | An MT19937 state consistent with the orientation bits exists iff the sample is MT19937, decidable from N=256 | **Confirmed.** Checks appear at exactly `78N - 19937` (0 at 255, 31 at 256, 343 at 260); test recall 1.000, 0 of 384 non-MT flagged, every match under the true word budget only. 24 s, nothing fitted. |
 | `r3-derived-state` | The r4 detector transfers to derived orientation; threshold is ceil(19937/77)=259, not 256 | **Confirmed.** Checks at exactly 77N-19937 (0 at 258, 6 at 259, 4703 at 320); test recall 1.000, 0/384 non-MT flagged. Derived costs three extra draws, it does not hide mt19937. |
 | `r3-derived-grid` | Derived orientation changes the statistical fingerprint | Weak-generator balanced acc 0.595->0.533 (-0.062, H13 rejected): derived is slightly *worse* for a statistical attacker. Shuffle unchanged (+0.027), control at chance. |
+| `r6-weak-ceiling` | pcg32 and xorshift128+ stay at chance as draws grow to 512 (detection only) | **Confirmed.** Binary heads vs chacha20 at 0.48-0.53 with every 95% interval containing 0.500 at N = 128, 256 and 512; no trend with N; control at chance. Power limit: a signal under ~0.06 is not excluded. |
 
 ## Known ceilings
 
