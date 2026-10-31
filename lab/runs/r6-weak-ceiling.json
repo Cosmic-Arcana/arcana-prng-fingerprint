@@ -1,0 +1,338 @@
+{
+  "id": "r6-weak-ceiling",
+  "gitSha": "61202d52e18ea1379e51ee02d775563f20d03e8c",
+  "randomState": 20260929,
+  "config": {
+    "dataset": "/Users/vladyslavlystopad/Desktop/software shit, tips, tricks /ainasataro/ml-lab/arcana-prng-fingerprint/data/r4-state-recovery.jsonl",
+    "n_curve": [
+      128,
+      256,
+      512
+    ],
+    "classes": [
+      "pcg32",
+      "xorshift128+",
+      "chacha20"
+    ],
+    "feature_set": "all",
+    "model": "HistGradientBoostingClassifier",
+    "max_iter_grid": [
+      120,
+      300
+    ],
+    "class_weight": "balanced",
+    "bootstrap": {
+      "resamples": 2000,
+      "seed": 20261031
+    },
+    "split_sizes": {
+      "pcg32": {
+        "train": 192,
+        "val": 64,
+        "test": 64
+      },
+      "xorshift128+": {
+        "train": 192,
+        "val": 64,
+        "test": 64
+      },
+      "chacha20": {
+        "train": 576,
+        "val": 192,
+        "test": 192
+      }
+    }
+  },
+  "metrics": {
+    "128": {
+      "heads": [
+        {
+          "head": "pcg32-vs-chacha20",
+          "classes": [
+            "pcg32",
+            "chacha20"
+          ],
+          "n_draws": 128,
+          "chance": 0.5,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.5052083333333333,
+          "test_balanced_accuracy": 0.484375,
+          "ci95": [
+            0.453125,
+            0.5182291666666667
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "xorshift128+-vs-chacha20",
+          "classes": [
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 128,
+          "chance": 0.5,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.5052083333333333,
+          "test_balanced_accuracy": 0.4921875,
+          "ci95": [
+            0.4557291666666667,
+            0.5313151041666663
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "reference": [
+        {
+          "head": "pcg32-vs-xorshift128+",
+          "classes": [
+            "pcg32",
+            "xorshift128+"
+          ],
+          "n_draws": 128,
+          "chance": 0.5,
+          "max_iter": 300,
+          "val_balanced_accuracy": 0.46875,
+          "test_balanced_accuracy": 0.453125,
+          "ci95": [
+            0.3671875,
+            0.5390625
+          ],
+          "n_test": 128,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "three-class",
+          "classes": [
+            "pcg32",
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 128,
+          "chance": 0.3333333333333333,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.34548611111111116,
+          "test_balanced_accuracy": 0.3159722222222222,
+          "ci95": [
+            0.2881944444444445,
+            0.34379340277777753
+          ],
+          "n_test": 320,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "control": {
+        "head": "csprng_control_seed_parity",
+        "accuracy": 0.515625,
+        "ci95": [
+          0.44532500223818083,
+          0.5853120244472331
+        ],
+        "n": 192,
+        "chance": 0.5,
+        "at_chance": true
+      }
+    },
+    "256": {
+      "heads": [
+        {
+          "head": "pcg32-vs-chacha20",
+          "classes": [
+            "pcg32",
+            "chacha20"
+          ],
+          "n_draws": 256,
+          "chance": 0.5,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.4817708333333333,
+          "test_balanced_accuracy": 0.5260416666666667,
+          "ci95": [
+            0.4869140625,
+            0.5729166666666667
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "xorshift128+-vs-chacha20",
+          "classes": [
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 256,
+          "chance": 0.5,
+          "max_iter": 300,
+          "val_balanced_accuracy": 0.4921875,
+          "test_balanced_accuracy": 0.5208333333333333,
+          "ci95": [
+            0.4791666666666667,
+            0.5625
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "reference": [
+        {
+          "head": "pcg32-vs-xorshift128+",
+          "classes": [
+            "pcg32",
+            "xorshift128+"
+          ],
+          "n_draws": 256,
+          "chance": 0.5,
+          "max_iter": 300,
+          "val_balanced_accuracy": 0.4609375,
+          "test_balanced_accuracy": 0.5390625,
+          "ci95": [
+            0.4453125,
+            0.625
+          ],
+          "n_test": 128,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "three-class",
+          "classes": [
+            "pcg32",
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 256,
+          "chance": 0.3333333333333333,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.3107638888888889,
+          "test_balanced_accuracy": 0.3246527777777778,
+          "ci95": [
+            0.2934027777777778,
+            0.35763888888888884
+          ],
+          "n_test": 320,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "control": {
+        "head": "csprng_control_seed_parity",
+        "accuracy": 0.4791666666666667,
+        "ci95": [
+          0.40960789460777813,
+          0.5495427364783367
+        ],
+        "n": 192,
+        "chance": 0.5,
+        "at_chance": true
+      }
+    },
+    "512": {
+      "heads": [
+        {
+          "head": "pcg32-vs-chacha20",
+          "classes": [
+            "pcg32",
+            "chacha20"
+          ],
+          "n_draws": 512,
+          "chance": 0.5,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.5104166666666667,
+          "test_balanced_accuracy": 0.4791666666666667,
+          "ci95": [
+            0.453125,
+            0.5078125
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "xorshift128+-vs-chacha20",
+          "classes": [
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 512,
+          "chance": 0.5,
+          "max_iter": 300,
+          "val_balanced_accuracy": 0.5520833333333333,
+          "test_balanced_accuracy": 0.5182291666666667,
+          "ci95": [
+            0.4817708333333333,
+            0.5598958333333333
+          ],
+          "n_test": 256,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "reference": [
+        {
+          "head": "pcg32-vs-xorshift128+",
+          "classes": [
+            "pcg32",
+            "xorshift128+"
+          ],
+          "n_draws": 512,
+          "chance": 0.5,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.5,
+          "test_balanced_accuracy": 0.421875,
+          "ci95": [
+            0.3359375,
+            0.5078125
+          ],
+          "n_test": 128,
+          "signal": false,
+          "at_chance": true
+        },
+        {
+          "head": "three-class",
+          "classes": [
+            "pcg32",
+            "xorshift128+",
+            "chacha20"
+          ],
+          "n_draws": 512,
+          "chance": 0.3333333333333333,
+          "max_iter": 120,
+          "val_balanced_accuracy": 0.3350694444444445,
+          "test_balanced_accuracy": 0.3489583333333333,
+          "ci95": [
+            0.3125,
+            0.38888888888888884
+          ],
+          "n_test": 320,
+          "signal": false,
+          "at_chance": true
+        }
+      ],
+      "control": {
+        "head": "csprng_control_seed_parity",
+        "accuracy": 0.4375,
+        "ci95": [
+          0.36923733031323985,
+          0.5082145629451044
+        ],
+        "n": 192,
+        "chance": 0.5,
+        "at_chance": true
+      }
+    }
+  },
+  "verdicts": {
+    "H14": true,
+    "H15": true,
+    "H16": true,
+    "H17": false
+  },
+  "durationMs": 86640,
+  "featureLoadMs": 61758
+}
