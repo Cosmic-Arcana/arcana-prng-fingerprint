@@ -47,3 +47,51 @@ H17 (what a miss would mean). If any binary head shows signal at any N, that is 
 detection signal for a generator the lab listed as invisible. The follow-up is
 to attribute it to a feature family (r1 statistics or GF(2) block) by ablation.
 It is a measurement follow-up only.
+
+---
+
+# Results
+
+Run `r6-weak-ceiling` at `61202d5`, 87 s, test seeds scored once.
+Record: `lab/runs/r6-weak-ceiling.json`.
+
+Balanced accuracy on held-out test seeds, 95% bootstrap interval in brackets.
+Chance is 0.500 for binary heads, 0.333 for the 3-class head.
+
+| Head | N = 128 | N = 256 | N = 512 |
+| --- | --- | --- | --- |
+| `pcg32` vs `chacha20` (decided) | 0.484 [0.453, 0.518] | 0.526 [0.487, 0.573] | 0.479 [0.453, 0.508] |
+| `xorshift128+` vs `chacha20` (decided) | 0.492 [0.456, 0.531] | 0.521 [0.479, 0.562] | 0.518 [0.482, 0.560] |
+| `pcg32` vs `xorshift128+` (reference) | 0.453 [0.367, 0.539] | 0.539 [0.445, 0.625] | 0.422 [0.336, 0.508] |
+| 3-class (reference) | 0.316 [0.288, 0.344] | 0.325 [0.293, 0.358] | 0.349 [0.312, 0.389] |
+| ChaCha20 seed-parity control (Wilson) | 0.516 [0.445, 0.585] | 0.479 [0.410, 0.550] | 0.438 [0.369, 0.508] |
+
+| Hypothesis | Verdict |
+| --- | --- |
+| H14 at N = 512 neither binary head separates its generator from ChaCha20 | **Confirmed.** Both intervals contain 0.500. |
+| H15 no draws-needed gain | **Confirmed.** Each head's N = 512 interval overlaps its N = 128 interval; point estimates wander within +-0.04 with no trend. |
+| H16 control stays at chance at every N | **Confirmed.** All three Wilson intervals contain 0.500, so the round is valid. |
+| H17 a signal at any N | **Not triggered.** No interval has a lower bound above chance. |
+
+## Reading
+
+- The `pcg32` / `xorshift128+` ceiling is **structural, not a draw-count limit**.
+  MT19937 flipped from invisible to exact at 256 draws because more draws added
+  linear equations the detector could use. These two generators have no such
+  equations in the exposed bits, and quadrupling the draws moved nothing.
+- The 3-class head at N = 512 (0.349, interval [0.312, 0.389]) includes chance.
+  Its lower end is the only place the number rises, and it does so inside noise.
+- Power: with 64 test samples per weak generator and 192 for ChaCha20, intervals
+  are about +-0.03 to +-0.05 wide on the binary heads. A signal larger than about
+  0.06 over chance would have shown. A smaller one is not excluded. This is a
+  statement about these features and this sample size, not about the generators.
+- The control interval at N = 512 sits low in its range (0.438) but contains 0.500;
+  it is the largest of three draws and is noted, not acted on.
+
+## Consequence
+
+The statistical-detector route is exhausted for these two generators on this
+feature set. Further progress needs either more samples per weak class to tighten
+the intervals, or features of a different kind. Features of the kind that read
+generator words are the state-reconstruction family and stay out of scope
+(`lab/CAPABILITIES.md`). Nothing in R6 changes that boundary.
